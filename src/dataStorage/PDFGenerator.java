@@ -11,6 +11,8 @@ import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.property.TextAlignment;
 
+import rawData.BeanPlan;
+
 public class PDFGenerator {
 	
 	final static float[] columnWidths = {1f, 3f, 1f};
@@ -19,7 +21,7 @@ public class PDFGenerator {
 	final static float subtitleSize = 10f;
 	final static float mainSize = 8f;
 
-	public static void generatePlanList(String filename, ArrayList<Plan> plans) throws IOException 
+	public static void generatePlanList(String filename, ArrayList<BeanPlan> plans) throws IOException 
 	{
 		PdfWriter writer = new PdfWriter(filename);
 		PdfDocument pdf = new PdfDocument(writer);
@@ -45,7 +47,7 @@ public class PDFGenerator {
 		
 		//TODO
 		
-		Table maintable = new Table(3);
+		Table maintable = new Table(5);
 		maintable.setWidthPercent(100);
 		maintable.setFontSize(mainSize);
 		
@@ -58,14 +60,30 @@ public class PDFGenerator {
 		Paragraph cost = new Paragraph("Kosten");
 		cost.setBold();
 		
+		Paragraph state = new Paragraph("Status");
+		state.setBold();
+		
+		Paragraph platform = new Paragraph("Plattform");
+		platform.setBold();
+		
 		maintable.addCell(desc);
 		maintable.addCell(date);
+		maintable.addCell(platform);
+		maintable.addCell(state);
 		maintable.addCell(cost);
 		
-		maintable.addCell("Nekopara Chibi Box Set");
-		maintable.addCell("Anfang Januar 2017");		
-		maintable.addCell("100€");		
+		maintable.addCell("Nekopara OVA Crowdfunding");
+		maintable.addCell("Ende Dezember 2016");			
+		maintable.addCell("Kickstarter");	
+		maintable.addCell("Bearbeitung steht aus");	
+		maintable.addCell("150€");	
 
+		maintable.addCell("Nekopara Chibi Box Set");
+		maintable.addCell("Anfang Januar 2017");			
+		maintable.addCell("KOINEKO");			
+		maintable.addCell("Versand");
+		maintable.addCell("100€");	
+		
 		document.add(maintable);
 		
 		document.close();

@@ -10,12 +10,10 @@ import data.ProgramSettings;
 
 public class DataSerializer {
 
-	
-	
-	public static void savePlatforms(Platforms p)
+	public static void saveProgramSettings(ProgramSettings p)
 	{		
 		try {
-			String filepath = ProgramSettings.getInstance().PLATFORMS_FILE_PATH();
+			String filepath = "settings.ser";
 			FileOutputStream fileOut = new FileOutputStream(filepath);
 			ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
 			objectOut.writeObject( p );
@@ -25,11 +23,39 @@ public class DataSerializer {
 		}
 	}
 	
-	public Platforms loadPlatforms()
+	public static ProgramSettings loadProgramSettings()
+	{
+		ProgramSettings res = null;
+		try {
+			String filepath = "settings.ser";
+			FileInputStream fileIn = new FileInputStream(filepath);
+			ObjectInputStream objectIn = new ObjectInputStream(fileIn);   
+			res = (ProgramSettings)objectIn.readObject();
+			objectIn.close();
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		return res;
+	}
+		
+	public static void savePlatforms(Platforms p)
+	{		
+		try {
+			String filepath = "platforms.ser";
+			FileOutputStream fileOut = new FileOutputStream(filepath);
+			ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
+			objectOut.writeObject( p );
+			objectOut.close();
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+		}
+	}
+	
+	public static Platforms loadPlatforms()
 	{
 		Platforms res = null;
 		try {
-			String filepath = ProgramSettings.getInstance().PLATFORMS_FILE_PATH();
+			String filepath = "platforms.ser";
 			FileInputStream fileIn = new FileInputStream(filepath);
 			ObjectInputStream objectIn = new ObjectInputStream(fileIn);   
 			res = (Platforms)objectIn.readObject();
