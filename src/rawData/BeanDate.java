@@ -1,12 +1,13 @@
 package rawData;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Comparator;
 
 import utility.BeanMonthParts;
 import utility.BeanMonths;
 
-public class BeanDate implements Comparator<BeanDate>{
+public class BeanDate implements Comparator<BeanDate>, Serializable{
 
 	private int year;
 	private BeanMonths month;

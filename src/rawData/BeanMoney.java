@@ -1,6 +1,8 @@
 package rawData;
 
-public class BeanMoney {
+import java.io.Serializable;
+
+public class BeanMoney implements Serializable {
 
 	private double amount;
 	
@@ -36,5 +38,10 @@ public class BeanMoney {
 		result = Math.round(result);
 		result = result /100;
 		return result;
+	}
+	
+	public String toString()
+	{
+		return amount + "€";
 	}
 }
