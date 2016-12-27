@@ -2,18 +2,18 @@ package rawData;
 
 import java.io.Serializable;
 
-public class Account implements Serializable{
+public class BeanAccount implements Serializable{
 
 	private BeanMoney balance;
 	private BeanMoney monthlyBooking;
 	
-	public Account()
+	public BeanAccount()
 	{
 		balance = new BeanMoney();
 		balance = new BeanMoney();
 	}
 	
-	public Account(double balance, double monthlyBooking)
+	public BeanAccount(double balance, double monthlyBooking)
 	{
 		this.balance = new BeanMoney(balance);
 		this.monthlyBooking = new BeanMoney(monthlyBooking);
