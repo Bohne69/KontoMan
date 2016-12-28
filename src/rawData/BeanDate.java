@@ -127,4 +127,14 @@ public class BeanDate implements Comparator<BeanDate>, Serializable{
 		
 		return d1.YEAR() - d2.YEAR();
 	}
+
+	public int compareNoParts(BeanDate d1, BeanDate d2)
+	{
+		if(d1.MONTH().compareTo(d2.MONTH()) != 0)
+		{
+			return d1.MONTH().compareTo(d2.MONTH());
+		}
+		
+		return d1.YEAR() - d2.YEAR();
+	}
 }

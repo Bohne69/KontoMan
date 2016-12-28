@@ -5,7 +5,7 @@ import java.io.Serializable;
 import utility.BeanPlanState;
 import utility.BeanPlanType;
 
-public class BeanPlan implements Serializable {
+public class BeanPlan implements Serializable, Comparable<BeanPlan> {
 
 	private String description;
 	private BeanDate date;
@@ -15,6 +15,8 @@ public class BeanPlan implements Serializable {
 	private BeanPlatform platform;
 	private String weblink;
 	private String trackingId;
+	
+	private BeanDate receiveDate;
 	
 	public BeanPlan()
 	{
@@ -26,9 +28,10 @@ public class BeanPlan implements Serializable {
 		setPlatform(null);
 		setWeblink("");
 		setTrackingId("");
+		setReceiveDate(null);
 	}
 	
-	public BeanPlan(String description, BeanDate date, BeanMoney amount, BeanPlanState state, BeanPlanType type, BeanPlatform platform, String weblink, String trackingId)
+	public BeanPlan(String description, BeanDate date, BeanMoney amount, BeanPlanState state, BeanPlanType type, BeanPlatform platform, String weblink, String trackingId, BeanDate receiveDate)
 	{
 		this.setDescription(description);
 		this.setDate(date);
@@ -38,13 +41,12 @@ public class BeanPlan implements Serializable {
 		this.setPlatform(platform);
 		this.setWeblink(weblink);
 		this.setTrackingId(trackingId);
+		this.setReceiveDate(receiveDate);
 	}
-
 	
 	public String getDescription() {
 		return description;
 	}
-
 	
 	public void setDescription(String description) {
 		this.description = description;
@@ -104,5 +106,25 @@ public class BeanPlan implements Serializable {
 
 	public void setTrackingId(String trackingId) {
 		this.trackingId = trackingId;
+	}
+
+	public String toString()
+	{
+		return description + " (" + platform + ") " + date + " - " + amount;
+	}
+
+	
+	public BeanDate getReceiveDate() {
+		return receiveDate;
+	}
+
+	
+	public void setReceiveDate(BeanDate receiveDate) {
+		this.receiveDate = receiveDate;
+	}
+
+	@Override
+	public int compareTo(BeanPlan o) {
+		return date.compare(date, o.date);
 	}
 }

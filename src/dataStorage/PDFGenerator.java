@@ -72,17 +72,14 @@ public class PDFGenerator {
 		maintable.addCell(state);
 		maintable.addCell(cost);
 		
-		maintable.addCell("Nekopara OVA Crowdfunding");
-		maintable.addCell("Ende Dezember 2016");			
-		maintable.addCell("Kickstarter");	
-		maintable.addCell("Bearbeitung steht aus");	
-		maintable.addCell("150€");	
-
-		maintable.addCell("Nekopara Chibi Box Set");
-		maintable.addCell("Anfang Januar 2017");			
-		maintable.addCell("KOINEKO");			
-		maintable.addCell("Versand");
-		maintable.addCell("100€");	
+		for(BeanPlan p : plans)
+		{
+			maintable.addCell(p.getDescription());
+			maintable.addCell(p.getDate().toString());			
+			maintable.addCell(p.getPlatform().toString());	
+			maintable.addCell(p.getState().toString());	
+			maintable.addCell(p.getAmount().toString());	
+		}
 		
 		document.add(maintable);
 		
