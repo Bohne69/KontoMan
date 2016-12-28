@@ -9,13 +9,14 @@ import java.io.ObjectOutputStream;
 import applicationLogic.Manager;
 import data.Platforms;
 import data.ProgramSettings;
+import userInterface.GuiSettings;
 
 public class DataSerializer {
 
-	public static void saveManager(Manager p)
+	public static void saveGuiSettings(GuiSettings p)
 	{		
 		try {
-			String filepath = "saveData.ser";
+			String filepath = "guiPreferences.ser";
 			FileOutputStream fileOut = new FileOutputStream(filepath);
 			ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
 			objectOut.writeObject( p );
@@ -25,11 +26,37 @@ public class DataSerializer {
 		}
 	}
 	
-	public static Manager loadManager()
+	public static GuiSettings loadGuiSettings()
+	{
+		GuiSettings res = null;
+		try {
+			String filepath = "guiPreferences.ser";
+			FileInputStream fileIn = new FileInputStream(filepath);
+			ObjectInputStream objectIn = new ObjectInputStream(fileIn);   
+			res = (GuiSettings)objectIn.readObject();
+			objectIn.close();
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		return res;
+	}
+	
+	public static void saveManager(String filepath, Manager p)
+	{		
+		try {
+			FileOutputStream fileOut = new FileOutputStream(filepath);
+			ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
+			objectOut.writeObject( p );
+			objectOut.close();
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+		}
+	}
+	
+	public static Manager loadManager(String filepath)
 	{
 		Manager res = null;
 		try {
-			String filepath = "saveData.ser";
 			FileInputStream fileIn = new FileInputStream(filepath);
 			ObjectInputStream objectIn = new ObjectInputStream(fileIn);   
 			res = (Manager)objectIn.readObject();

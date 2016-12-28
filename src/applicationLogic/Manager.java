@@ -184,6 +184,8 @@ public class Manager implements Serializable {
 	
 	//TODO Month < 0
 	
+	//TODO Graph
+	
 	public void printAllPlans(String fileName) throws IOException
 	{
 		PDFGenerator.generatePlanList(fileName, plans);
@@ -193,14 +195,14 @@ public class Manager implements Serializable {
 	
 	//TODO getDetailedReceiptOverNextMonths
 	
-	public void load()
+	public void load(String path)
 	{
-		instance = DataSerializer.loadManager();
+		instance = DataSerializer.loadManager(path);
 	}
 	
-	public void save()
+	public void save(String path)
 	{
-		DataSerializer.saveManager(Manager.this);
+		DataSerializer.saveManager(path, Manager.this);
 	}
 	
 	public void booking(String topic, BeanMoney amount)
