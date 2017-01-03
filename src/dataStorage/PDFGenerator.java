@@ -12,8 +12,12 @@ import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.property.TextAlignment;
 
+import applicationLogic.Manager;
 import rawData.BeanDate;
+import rawData.BeanMoney;
 import rawData.BeanPlan;
+import utility.BeanMonthParts;
+import utility.BeanMonths;
 import utility.BeanPlanState;
 import utility.BeanPlanType;
 
@@ -197,6 +201,57 @@ public class PDFGenerator {
 			trackingIDTitle.setPaddingBottom(-0f);
 			document.add(trackingID);
 		}
+		
+		document.close();
+		pdf.close();
+		writer.close();
+	}
+
+	public static void generateFutureBalance(String filename) throws IOException
+	{
+		PdfWriter writer = new PdfWriter(filename);
+		PdfDocument pdf = new PdfDocument(writer);
+		Document document = new Document(pdf, PageSize.A4);
+
+		Paragraph title = new Paragraph("Voraussichtlicher Kontoverlauf über die nächsten 12 Monate");
+		title.setPaddingTop(-25f);
+		title.setBold();
+		title.setTextAlignment(TextAlignment.CENTER);
+		title.setFontSize(titleSize);
+		document.add(title);
+		
+		document.setFontSize(10);
+		
+		Table maintable = new Table(2);
+		maintable.setWidthPercent(100);
+		maintable.setFontSize(mainSize);
+		
+		Paragraph date = new Paragraph("Datum");
+		date.setBold();
+		
+		Paragraph amount = new Paragraph("Kontostand zu Monatsende");
+		amount.setBold();
+
+		maintable.addCell(date);
+		maintable.addCell(amount);
+		
+		BeanDate tmp = new BeanDate(true);
+		List<BeanDate> months = new ArrayList<BeanDate>();
+		for(int i = 0; i < 12; i++)
+		{
+			months.add(tmp);
+			tmp = tmp.getNextMonth();
+		}
+		
+		List<Double> amounts = Manager.getInstance().getFutureScores();
+		
+		for(int i = 0; i < 12; i++)
+		{
+			maintable.addCell(months.get(i).toSimpleString());
+			maintable.addCell(new BeanMoney(amounts.get(i)).toString());
+		}
+		
+		document.add(maintable);
 		
 		document.close();
 		pdf.close();

@@ -50,6 +50,7 @@ import rawData.BeanAccount;
 import rawData.BeanMoney;
 import rawData.BeanPlan;
 import userInterfaceUtility.BeanPlanListCellRenderer;
+import utility.BeanPlanState;
 
 @SuppressWarnings("all")
 public class GUI extends JFrame {
@@ -118,7 +119,8 @@ public class GUI extends JFrame {
 				  
 			  }});
 			
-		setPreferredSize(new Dimension(1520,890));
+		setPreferredSize(new Dimension(1446,519));
+//		setPreferredSize(new Dimension(1520,890));
 		
 		pack();
 		setLocationRelativeTo(null);
@@ -164,10 +166,6 @@ public class GUI extends JFrame {
 		
 		graph = new Graph(Manager.getInstance().getFutureScores(), Manager.getInstance().getFutureMonths());
 		right.add(graph, BorderLayout.CENTER);
-		
-		JPanel filler = new JPanel();
-		filler.setPreferredSize(new Dimension(0,350));
-		right.add(filler, BorderLayout.SOUTH);
 	}
 	
 	private JMenuBar createMenuBar()
@@ -395,14 +393,37 @@ public class GUI extends JFrame {
 				});
 				print.add(printPlans);
 				JMenuItem printFuture = new JMenuItem("Zukünftigen Kontoverlauf Exportieren");
-				//TODO
+				printFuture.addActionListener(new ActionListener(){
+					public void actionPerformed(ActionEvent e){
+						final JFileChooser fileChooser = new JFileChooser();
+						FileNameExtensionFilter ff = new FileNameExtensionFilter("PDF Dokument", "pdf");
+						fileChooser.setAcceptAllFileFilterUsed(false);
+						fileChooser.setApproveButtonText("Exportieren");
+						fileChooser.setFileFilter(ff);					
+						if(fileChooser.showOpenDialog(getContentPane()) == 0)
+						{
+							File fileChooserResult = fileChooser.getSelectedFile();
+
+							if(fileChooserResult.getAbsoluteFile().toString().endsWith(".pdf"))
+							{
+								try {
+									PDFGenerator.generateFutureBalance(fileChooserResult.getAbsolutePath());
+								} catch (IOException e1) {
+									JOptionPane.showMessageDialog(getContentPane(), "Fehler beim exportieren der Datei: " + e1.getMessage(), "Export Fehler", JOptionPane.ERROR_MESSAGE);
+								}
+							}
+							else
+							{
+								try {
+									PDFGenerator.generateFutureBalance(fileChooserResult.getAbsolutePath() + ".pdf");
+								} catch (IOException e1) {
+									JOptionPane.showMessageDialog(getContentPane(), "Fehler beim exportieren der Datei: " + e1.getMessage(), "Export Fehler", JOptionPane.ERROR_MESSAGE);
+								}
+							}
+						}
+					}
+				});
 				print.add(printFuture);
-				JMenuItem printFinances = new JMenuItem("Aktuelle Kontodetails Exportieren");
-				//TODO
-				print.add(printFinances);
-				JMenuItem printComplete = new JMenuItem("Komplettübersicht Exportieren");
-				//TODO
-				print.add(printComplete);
 			tools.add(print);
 			JMenuItem converter = new JMenuItem("Währungsrechner");
 			//TODO
@@ -432,9 +453,13 @@ public class GUI extends JFrame {
 				// Show Submenu
 				JMenu show = new JMenu("Anzeigen");
 					JMenuItem details = new JMenuItem("Detailübersicht");
-					//TODO
+					details.addActionListener(new ActionListener(){
+						public void actionPerformed(ActionEvent e){
+							PlanDetailsDialogue.open(GUI.this, (BeanPlan)plans.getSelectedValue());
+						}
+					});
 					show.add(details);
-					JMenuItem website = new JMenuItem("Website");
+					JMenuItem website = new JMenuItem("Produktseite");
 					website.addActionListener(new ActionListener(){
 						public void actionPerformed(ActionEvent e){
 							openWeblinkPage((BeanPlan)plans.getSelectedValue());
@@ -446,11 +471,50 @@ public class GUI extends JFrame {
 							openTrackingPage((BeanPlan)plans.getSelectedValue());
 						}
 					});
+					JMenuItem platformPage = new JMenuItem("Plattform Accountübersicht");
+					platformPage.addActionListener(new ActionListener(){
+						public void actionPerformed(ActionEvent e){
+							openPlatformWebPage((BeanPlan)plans.getSelectedValue());
+						}
+					});
 					
 				JMenu edit = new JMenu("Bearbeiten");
 					JMenuItem change = new JMenuItem("Verändern");
-					//TODO
+					change.addActionListener(new ActionListener(){
+						public void actionPerformed(ActionEvent e){
+							EditPlanDialogue.open(GUI.this, (BeanPlan)plans.getSelectedValue());
+						}
+					});
 					edit.add(change);
+					JMenu editState = new JMenu("Status ändern");
+						JMenuItem planned = new JMenuItem("Geplant");
+						planned.addActionListener(new ActionListener(){
+							public void actionPerformed(ActionEvent e){
+								((BeanPlan)plans.getSelectedValue()).setState(BeanPlanState.PLANNED);
+								Manager.getInstance().updatePlanStates();
+								update();
+							}
+						});
+						editState.add(planned);
+						JMenuItem shipping = new JMenuItem("Versand");
+						shipping.addActionListener(new ActionListener(){
+							public void actionPerformed(ActionEvent e){
+								((BeanPlan)plans.getSelectedValue()).setState(BeanPlanState.SHIPPING);
+								Manager.getInstance().updatePlanStates();
+								update();
+							}
+						});
+						editState.add(shipping);
+						JMenuItem taxed = new JMenuItem("Im Zoll");
+						taxed.addActionListener(new ActionListener(){
+							public void actionPerformed(ActionEvent e){
+								((BeanPlan)plans.getSelectedValue()).setState(BeanPlanState.TAXED);
+								Manager.getInstance().updatePlanStates();
+								update();
+							}
+						});
+						editState.add(taxed);
+					edit.add(editState);
 					JMenuItem finish = new JMenuItem("Abschließen");
 					finish.addActionListener(new ActionListener(){
 						public void actionPerformed(ActionEvent e){
@@ -557,6 +621,8 @@ public class GUI extends JFrame {
 		            		   show.add(tracking);
 		            	   else
 		            		   show.remove(tracking);
+		            	   
+		            	   show.add(platformPage);
 		            	   
 		            	   popupMenu.add(show);
 		            	   popupMenu.add(edit);
@@ -720,6 +786,25 @@ public class GUI extends JFrame {
 		{
 			  try {
 					Desktop.getDesktop().browse(new URI(p.getWeblink()));
+				} catch (IOException e) {
+					JOptionPane.showMessageDialog(getContentPane(), e.getMessage(), "Browser Error", JOptionPane.ERROR_MESSAGE);
+				} catch (URISyntaxException e) {
+					JOptionPane.showMessageDialog(getContentPane(), e.getMessage(), "Browser Error", JOptionPane.ERROR_MESSAGE);
+				}
+			  return;
+		}
+		else
+		{
+			JOptionPane.showMessageDialog(getContentPane(), "The selected Plan has no Weblink connected to it!", "Plan Weblink Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private void openPlatformWebPage(BeanPlan p)
+	{
+		if(!p.getWeblink().isEmpty())
+		{
+			  try {
+					Desktop.getDesktop().browse(new URI(p.getPlatform().URL()));
 				} catch (IOException e) {
 					JOptionPane.showMessageDialog(getContentPane(), e.getMessage(), "Browser Error", JOptionPane.ERROR_MESSAGE);
 				} catch (URISyntaxException e) {
