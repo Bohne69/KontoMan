@@ -17,11 +17,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -426,16 +428,39 @@ public class GUI extends JFrame {
 				print.add(printFuture);
 			tools.add(print);
 			JMenuItem converter = new JMenuItem("Währungsrechner");
-			//TODO
+			converter.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent e){
+					
+					JPanel from = new JPanel(new GridLayout(1,2));
+					JSpinner fromAmount = new JSpinner(new SpinnerNumberModel(Manager.getInstance().getAccount().BALANCE().AMOUNT(),-999999.0,999999.0,0.01));
+					from.add(fromAmount);
+					JComboBox fromCurrency = new JComboBox(new String[]{"Euro", "Dollar", "Yen"});
+					from.add(fromCurrency);
+					JComboBox toCurrency = new JComboBox(new String[]{"Euro", "Dollar", "Yen"});
+					
+					Object[] inputs = {"Von:", from, "Nach:", toCurrency};
+					int option = JOptionPane.showConfirmDialog(getContentPane(), inputs, "Währungsrechner", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+					if (option == JOptionPane.OK_OPTION)
+					{
+						try {
+								Desktop.getDesktop().browse(new URI("https://www.google.de/?gws_rd=ssl#q=" + fromAmount.getValue().toString() + "+" + fromCurrency.getSelectedItem().toString() + "+in+" + toCurrency.getSelectedItem().toString()));
+							} catch (IOException e1) {
+								JOptionPane.showMessageDialog(getContentPane(), e1.getMessage(), "Browser Error", JOptionPane.ERROR_MESSAGE);
+							} catch (URISyntaxException e1) {
+								JOptionPane.showMessageDialog(getContentPane(), e1.getMessage(), "Browser Error", JOptionPane.ERROR_MESSAGE);
+							}
+					}
+				}
+			});
 			tools.add(converter);
 		menu.add(tools);
 		
 		// SETTINGS ---------------
-		JMenu settings = new JMenu("Optionen");
-			JMenuItem preferences = new JMenuItem("Einstellungen");
-			//TODO
-			settings.add(preferences);
-		menu.add(settings);
+//		JMenu settings = new JMenu("Optionen");
+//			JMenuItem preferences = new JMenuItem("Einstellungen");
+//			//TODO
+//			settings.add(preferences);
+//		menu.add(settings);
 		
 		return menu;
 	}
