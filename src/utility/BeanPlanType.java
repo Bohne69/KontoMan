@@ -18,4 +18,11 @@ public enum BeanPlanType {
 			return "Buchung";						
 		}
 	}
+	
+	public static String[] toArray()
+	{
+		return new String[]{
+				"Versandbestellung", "Etappenplanung", "Buchung"
+		};
+	}
 }

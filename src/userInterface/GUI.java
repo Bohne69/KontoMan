@@ -3,6 +3,8 @@ package userInterface;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -162,14 +164,27 @@ public class GUI extends JFrame {
 		JMenuBar menu = new JMenuBar();
 		
 		JMenu file = new JMenu("Datei");
-			JMenuItem exit = new JMenuItem("Schließen");
+			JMenuItem open = new JMenuItem("Öffnen...");
 			//TODO
-			file.add(exit);
+			file.add(open);
+			JMenu lastProjects = new JMenu("Letzte geöffnete Projekte");
+			//TODO
+			file.add(lastProjects);
+			JMenuItem save = new JMenuItem("Speichern");
+			//TODO
+			file.add(save);
+			JMenuItem saveAs = new JMenuItem("Speichern unter...");
+			//TODO
+			file.add(saveAs);
 		menu.add(file);
 		
 		JMenu edit = new JMenu("Bearbeiten");
 			JMenuItem addPlan = new JMenuItem("Plan hinzufügen");
-			//TODO
+			addPlan.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent e){
+					addPlan();
+				}
+			});
 			edit.add(addPlan);
 		menu.add(edit);
 		
@@ -190,5 +205,12 @@ public class GUI extends JFrame {
 	private void setPlanData()
 	{
 		plans.setListData(man.getPlans().toArray());
+	}
+
+	// Button Functions
+	
+	private void addPlan()
+	{
+		AddPlanDialogue.open(GUI.this);
 	}
 }

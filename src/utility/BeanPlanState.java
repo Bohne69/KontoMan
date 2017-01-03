@@ -16,9 +16,9 @@ public enum BeanPlanState {
 		switch(s)
 		{
 		case PLANNED:
-			return "In Planung";			
+			return "Geplant";			
 		case SCHEDULED:
-			return "Bearbeitung in kürze";						
+			return "In Bearbeitung";						
 		case LATE:
 			return "Bearbeitung verspätet";			
 		case SHIPPING:
@@ -34,4 +34,10 @@ public enum BeanPlanState {
 		}
 	}
 	
+	public static String[] toArray()
+	{
+		return new String[]{
+				"Geplant", "In Bearbeitung", "Bearbeitung verspätet", "Versand", "Versand verspätet", "Im Zoll", "Fertiggestellt", "Abgebrochen"
+		};
+	}
 }

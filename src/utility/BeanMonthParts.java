@@ -41,4 +41,11 @@ public enum BeanMonthParts {
 			return "";
 		}
 	}
+	
+	public static String[] toArray()
+	{
+		return new String[]{
+			"Keine Angabe", "Anfang", "Mitte", "Ende"	
+		};
+	}
 }

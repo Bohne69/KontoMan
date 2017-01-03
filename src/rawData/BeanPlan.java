@@ -16,6 +16,7 @@ public class BeanPlan implements Serializable, Comparable<BeanPlan> {
 	private String weblink;
 	private String trackingId;
 	
+	//TODO
 	private BeanDate receiveDate;
 	
 	public BeanPlan()

@@ -82,4 +82,11 @@ public enum BeanMonths {
 			return "";
 		}
 	}
+	
+	public static String[] toArray()
+	{
+		return new String[]{
+				"Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"
+		};
+	}
 }
