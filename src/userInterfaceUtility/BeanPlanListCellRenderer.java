@@ -8,6 +8,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -23,6 +24,7 @@ public class BeanPlanListCellRenderer extends JPanel implements ListCellRenderer
 	private static Color HIGHLIGHT_COLOR = GuiSettings.getInstance().THEME_COLOR;
 	
 	private JLabel desc;
+	private JLabel platform;
 	private JLabel date;
 	private JLabel state;
 	private JLabel amount;
@@ -35,6 +37,7 @@ public class BeanPlanListCellRenderer extends JPanel implements ListCellRenderer
 		setOpaque(true);
 		
 		desc = new JLabel();
+		platform = new JLabel();
 		date = new JLabel();
 		state = new JLabel();
 		amount = new JLabel();
@@ -59,16 +62,22 @@ public class BeanPlanListCellRenderer extends JPanel implements ListCellRenderer
 		add(desc, c);
 		
 		c.gridx = 1;
+		platform.setPreferredSize(new Dimension(100,15));
+		add(platform, c);
+		
+		c.gridx = 2;
 		date.setPreferredSize(new Dimension(150,15));
 		add(date, c);
 		
-		c.gridx = 2;
+		c.gridx = 3;
 		state.setPreferredSize(new Dimension(150,15));
 		add(state, c);
 				
-		c.gridx = 3;
+		c.gridx = 4;
 		amount.setPreferredSize(new Dimension(75,15));
 		add(amount, c);
+		
+		setBorder(BorderFactory.createSoftBevelBorder(0));
 	}
 	
 	public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
@@ -76,6 +85,7 @@ public class BeanPlanListCellRenderer extends JPanel implements ListCellRenderer
 		BeanPlan entry = (BeanPlan) value;
 		
 		desc.setText(entry.getDescription());
+		platform.setText(entry.getPlatform().NAME());
 		date.setText(entry.getDate().toString());
 		state.setText(entry.getState().stringify(entry.getState()));
 		amount.setText(entry.getAmount().toString());
