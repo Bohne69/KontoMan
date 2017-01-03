@@ -86,7 +86,7 @@ public class PDFGenerator {
 		PdfDocument pdf = new PdfDocument(writer);
 		Document document = new Document(pdf, PageSize.A4);
 
-		Paragraph title = new Paragraph(plan.getDescription());
+		Paragraph title = new Paragraph("Plan: " + plan.getDescription());
 		title.setPaddingTop(-25f);
 		title.setBold();
 		title.setTextAlignment(TextAlignment.CENTER);

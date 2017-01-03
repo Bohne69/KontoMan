@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 import data.ProgramSettings;
 import dataStorage.DataSerializer;
@@ -192,11 +193,59 @@ public class Manager implements Serializable {
 		return tmpBalance;
 	}
 	
-	//TODO getFutureMonths MonthsCalcObject
+	public List<Integer> getFutureMonths()
+	{
+		ArrayList<Integer> result = new ArrayList<Integer>();
+		
+		BeanDate tempDate = new BeanDate(true);
+
+		for(int i = 0; i < 12; i++)
+		{
+			result.add(tempDate.MONTH().ordinal());
+
+			tempDate = tempDate.getNextMonth();
+		}
+		
+		return result;
+	}
+	
+	public List<Double> getFutureScores()
+	{
+		ArrayList<Double> result = new ArrayList<Double>();
+		
+		double tempBalance = 0;
+		BeanDate tempDate = new BeanDate(true);
+		
+		tempBalance += account.BALANCE().AMOUNT();
+		tempBalance -= account.MONTHLY_BOOKING().AMOUNT();
+		
+		
+		for(BeanPlan p : plans)
+		{
+			if(p.getDate().compare(p.getDate(), new BeanDate(true)) < 0)
+			{
+				tempBalance -= p.getAmount().AMOUNT();
+			}
+		}
+		
+		for(int i = 0; i < 12; i++)
+		{
+			tempBalance += account.MONTHLY_BOOKING().AMOUNT();
+			
+			for(BeanPlan p : getPlansInMonth(tempDate))
+			{
+				tempBalance -= p.getAmount().AMOUNT();
+			}
+			
+			result.add(tempBalance);
+			
+			tempDate = tempDate.getNextMonth();
+		}
+		
+		return result;
+	}
 	
 	//TODO Month < 0
-	
-	//TODO Graph
 	
 	public void printAllPlans(String fileName) throws IOException
 	{

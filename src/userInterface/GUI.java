@@ -17,6 +17,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -35,6 +37,7 @@ import javax.swing.JSeparator;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -48,11 +51,13 @@ import rawData.BeanMoney;
 import rawData.BeanPlan;
 import userInterfaceUtility.BeanPlanListCellRenderer;
 
+@SuppressWarnings("all")
 public class GUI extends JFrame {
 
 	private JList plans;
 	private JLabel balance;
 	private JLabel monthlyBooking;
+	private Graph graph;
 	
 	public GUI()
 	{
@@ -145,19 +150,24 @@ public class GUI extends JFrame {
 		setPlanData();
 		
 		JPanel accountDetails = new JPanel(new GridLayout(1,3));
-//		accountDetails.setBorder(BorderFactory.createSoftBevelBorder(0));
 		right.add(accountDetails, BorderLayout.NORTH);
 		JLabel accountDetailsTitle = new JLabel("Aktuelle Kontodaten:");
+		accountDetailsTitle.setHorizontalAlignment(SwingConstants.CENTER);
 		accountDetailsTitle.setFont(new Font(accountDetailsTitle.getFont().getFontName(), Font.PLAIN, 15));
 		balance = new JLabel("Kontostand: " + Manager.getInstance().getAccount().BALANCE().toString());
+		balance.setHorizontalAlignment(SwingConstants.CENTER);
 		monthlyBooking = new JLabel("Monatliche Buchung: " + Manager.getInstance().getAccount().MONTHLY_BOOKING().toString());
+		monthlyBooking.setHorizontalAlignment(SwingConstants.CENTER);
 		accountDetails.add(accountDetailsTitle);
 		accountDetails.add(balance);
 		accountDetails.add(monthlyBooking);
 		
+		graph = new Graph(Manager.getInstance().getFutureScores(), Manager.getInstance().getFutureMonths());
+		right.add(graph, BorderLayout.CENTER);
 		
-		
-		//TODO
+		JPanel filler = new JPanel();
+		filler.setPreferredSize(new Dimension(0,350));
+		right.add(filler, BorderLayout.SOUTH);
 	}
 	
 	private JMenuBar createMenuBar()
@@ -425,9 +435,17 @@ public class GUI extends JFrame {
 					//TODO
 					show.add(details);
 					JMenuItem website = new JMenuItem("Website");
-					//TODO
+					website.addActionListener(new ActionListener(){
+						public void actionPerformed(ActionEvent e){
+							openWeblinkPage((BeanPlan)plans.getSelectedValue());
+						}
+					});
 					JMenuItem tracking = new JMenuItem("Sendungsverfolgung");
-					//TODO
+					tracking.addActionListener(new ActionListener(){
+						public void actionPerformed(ActionEvent e){
+							openTrackingPage((BeanPlan)plans.getSelectedValue());
+						}
+					});
 					
 				JMenu edit = new JMenu("Bearbeiten");
 					JMenuItem change = new JMenuItem("Verändern");
@@ -555,6 +573,12 @@ public class GUI extends JFrame {
 	{
 		setPlanData();
 		setAccountData();
+		setGraphData();
+	}
+	
+	private void setGraphData()
+	{
+		graph.setScores(Manager.getInstance().getFutureScores(), Manager.getInstance().getFutureMonths());
 	}
 	
 	private void setPlanData()
@@ -639,4 +663,74 @@ public class GUI extends JFrame {
 	{
 		AddPlanDialogue.open(GUI.this);
 	}
+
+	private void openTrackingPage(BeanPlan p)
+	{
+		if(!p.getTrackingId().isEmpty())
+		{
+			
+			String transporter = p.getTrackingId().substring (0,2);
+			System.out.println(transporter);
+			
+			// EMS
+			if(transporter.equals("EM") || transporter.equals("RM"))
+			{
+				try {
+					Desktop.getDesktop().browse(new URI("https://trackings.post.japanpost.jp/services/srv/search/direct?searchKind=S004&locale=en&reqCodeNo1=" + p.getTrackingId() + "&x=32&y=9"));
+				} catch (IOException e) {
+					JOptionPane.showMessageDialog(getContentPane(), e.getMessage(), "Browser Error", JOptionPane.ERROR_MESSAGE);
+				} catch (URISyntaxException e) {
+					JOptionPane.showMessageDialog(getContentPane(), e.getMessage(), "Browser Error", JOptionPane.ERROR_MESSAGE);
+				}
+			  return;
+			}
+			// DHL
+			else if(transporter.equals("JJ"))
+			{
+				try {
+					Desktop.getDesktop().browse(new URI("https://nolp.dhl.de/nextt-online-public/set_identcodes.do?lang=de&idc=" + p.getTrackingId() + "&rfn=&extendedSearch=true"));
+				} catch (IOException e) {
+					JOptionPane.showMessageDialog(getContentPane(), e.getMessage(), "Browser Error", JOptionPane.ERROR_MESSAGE);
+				} catch (URISyntaxException e) {
+					JOptionPane.showMessageDialog(getContentPane(), e.getMessage(), "Browser Error", JOptionPane.ERROR_MESSAGE);
+				}
+			  return;
+			}
+			else
+			{
+				try {
+					Desktop.getDesktop().browse(new URI(p.getTrackingId()));
+				} catch (IOException e) {
+					JOptionPane.showMessageDialog(getContentPane(), e.getMessage(), "Browser Error", JOptionPane.ERROR_MESSAGE);
+				} catch (URISyntaxException e) {
+					JOptionPane.showMessageDialog(getContentPane(), e.getMessage(), "Browser Error", JOptionPane.ERROR_MESSAGE);
+				}
+			  return;
+			}
+		}
+		else
+		{
+			JOptionPane.showMessageDialog(getContentPane(), "The selected Plan has no Tracking ID connected to it!", "Plan Tracking Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private void openWeblinkPage(BeanPlan p)
+	{
+		if(!p.getWeblink().isEmpty())
+		{
+			  try {
+					Desktop.getDesktop().browse(new URI(p.getWeblink()));
+				} catch (IOException e) {
+					JOptionPane.showMessageDialog(getContentPane(), e.getMessage(), "Browser Error", JOptionPane.ERROR_MESSAGE);
+				} catch (URISyntaxException e) {
+					JOptionPane.showMessageDialog(getContentPane(), e.getMessage(), "Browser Error", JOptionPane.ERROR_MESSAGE);
+				}
+			  return;
+		}
+		else
+		{
+			JOptionPane.showMessageDialog(getContentPane(), "The selected Plan has no Weblink connected to it!", "Plan Weblink Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
 }

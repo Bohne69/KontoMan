@@ -68,7 +68,7 @@ public class BeanDate implements Comparator<BeanDate>, Serializable{
 
 	public BeanDate getNextMonth()
 	{
-		if(month.compareTo(BeanMonths.DEZEMBER) > 0)
+		if(month != BeanMonths.DEZEMBER)
 		{
 			return new BeanDate(part, BeanMonths.fromInt(month.ordinal() + 1), year);
 		}
