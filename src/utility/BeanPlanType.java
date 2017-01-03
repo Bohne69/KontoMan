@@ -19,6 +19,22 @@ public enum BeanPlanType {
 		}
 	}
 	
+	public static BeanPlanType fromString(String s)
+	{
+		if(s.equals("Versandbestellung"))
+		{
+			return DELIVERY;
+		}
+		else if(s.equals("Etappenplanung"))
+		{
+			return MULTI_STAGE_PLAN;
+		}
+		else
+		{
+			return DIRECT_BOOKING;
+		}
+	}
+	
 	public static String[] toArray()
 	{
 		return new String[]{

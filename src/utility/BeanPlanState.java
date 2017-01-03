@@ -34,6 +34,46 @@ public enum BeanPlanState {
 		}
 	}
 	
+	public static BeanPlanState fromString(String s)
+	{
+		if(s.equals("Geplant"))
+		{
+			return PLANNED;
+		}
+		else if (s.equals("In Bearbeitung"))
+		{
+			return SCHEDULED;
+		}
+		else if (s.equals("Bearbeitung verspätet"))
+		{
+			return LATE;
+		}
+		else if (s.equals("Versand"))
+		{
+			return SHIPPING;
+		}
+		else if (s.equals("Versand verspätet"))
+		{
+			return LATE_SHIPPING;
+		}
+		else if (s.equals("Im Zoll"))
+		{
+			return TAXED;
+		}
+		else if (s.equals("Bearbeitung verspätet"))
+		{
+			return LATE;
+		}
+		else if (s.equals("Fertiggestellt"))
+		{
+			return DONE;
+		}
+		else
+		{
+			return CANCELLED;
+		}
+	}
+	
 	public static String[] toArray()
 	{
 		return new String[]{

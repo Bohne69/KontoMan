@@ -16,7 +16,7 @@ public class Platforms implements Serializable {
 	{
 		if(instance == null)
 		{
-//			load();
+			load();
 			if(instance == null)
 				instance = new Platforms();
 		}
@@ -31,8 +31,6 @@ public class Platforms implements Serializable {
 	public Platforms()
 	{
 		platforms = new ArrayList<BeanPlatform>();
-		
-		platforms.add(new BeanPlatform("test", "test"));
 	}
 	
 	public void addPlatform(BeanPlatform p)

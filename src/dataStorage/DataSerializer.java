@@ -1,6 +1,7 @@
 package dataStorage;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -53,7 +54,7 @@ public class DataSerializer {
 		}
 	}
 	
-	public static Manager loadManager(String filepath)
+	public static Manager loadManager(String filepath) throws FileNotFoundException
 	{
 		Manager res = null;
 		try {
@@ -62,7 +63,7 @@ public class DataSerializer {
 			res = (Manager)objectIn.readObject();
 			objectIn.close();
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
+			throw new FileNotFoundException();
 		}
 		return res;
 	}

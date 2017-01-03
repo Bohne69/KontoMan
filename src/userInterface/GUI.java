@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
@@ -32,7 +33,6 @@ import userInterfaceUtility.BeanPlanListCellRenderer;
 public class GUI extends JFrame {
 
 	private JList plans;
-	private Manager man;
 	
 	public GUI()
 	{
@@ -59,15 +59,13 @@ public class GUI extends JFrame {
 		    exc.printStackTrace();
 		}	
 		
-		if(GuiSettings.getInstance().getCurrentSaveFile().isEmpty())
+		if(!GuiSettings.getInstance().getCurrentSaveFile().isEmpty())
 		{
-			man = new Manager();
-		}
-		else
-		{
-			man = DataSerializer.loadManager(GuiSettings.getInstance().getCurrentSaveFile());
-			if(man == null)
-				man = new Manager();
+			try {
+				Manager.setInstance(DataSerializer.loadManager(GuiSettings.getInstance().getCurrentSaveFile()));
+			} catch (FileNotFoundException e1) {
+				GuiSettings.getInstance().setCurrentSaveFile("");
+			}
 		}
 		
 		createGUI();
@@ -196,7 +194,7 @@ public class GUI extends JFrame {
 		//TODO
 	}
 
-	private void updateOutputs()
+	public void update()
 	{
 		setPlanData();
 		//TODO
@@ -204,7 +202,7 @@ public class GUI extends JFrame {
 	
 	private void setPlanData()
 	{
-		plans.setListData(man.getPlans().toArray());
+		plans.setListData(Manager.getInstance().getPlans().toArray());
 	}
 
 	// Button Functions

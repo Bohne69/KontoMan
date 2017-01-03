@@ -1,5 +1,6 @@
 package applicationLogic;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -195,7 +196,7 @@ public class Manager implements Serializable {
 	
 	//TODO getDetailedReceiptOverNextMonths
 	
-	public void load(String path)
+	public void load(String path) throws FileNotFoundException
 	{
 		instance = DataSerializer.loadManager(path);
 	}
