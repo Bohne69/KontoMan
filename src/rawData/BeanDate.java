@@ -115,9 +115,9 @@ public class BeanDate implements Comparator<BeanDate>, Serializable{
 	
 	public int compare(BeanDate d1, BeanDate d2)
 	{
-		if(d1.PART().compareTo(d2.PART()) != 0)
+		if(d1.YEAR() - d2.YEAR() != 0)
 		{
-			return d1.PART().compareTo(d2.PART());
+			return d1.YEAR() - d2.YEAR();
 		}
 		
 		if(d1.MONTH().compareTo(d2.MONTH()) != 0)
@@ -125,16 +125,17 @@ public class BeanDate implements Comparator<BeanDate>, Serializable{
 			return d1.MONTH().compareTo(d2.MONTH());
 		}
 		
-		return d1.YEAR() - d2.YEAR();
+		return d1.PART().compareTo(d2.PART());
+
 	}
 
 	public int compareNoParts(BeanDate d1, BeanDate d2)
 	{
-		if(d1.MONTH().compareTo(d2.MONTH()) != 0)
+		if(d1.YEAR() - d2.YEAR() != 0)
 		{
-			return d1.MONTH().compareTo(d2.MONTH());
+			return d1.YEAR() - d2.YEAR();
 		}
 		
-		return d1.YEAR() - d2.YEAR();
+		return d1.MONTH().compareTo(d2.MONTH());
 	}
 }

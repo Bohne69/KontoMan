@@ -33,6 +33,8 @@ public class Manager implements Serializable {
 	public static void setInstance(Manager m)
 	{
 		instance = m;
+		if(m != null)
+			m.update();
 	}
 	
 	public Manager()
@@ -50,6 +52,7 @@ public class Manager implements Serializable {
 	}
 
 	public ArrayList<BeanPlan> getPlans() {
+		sortPlans();
 		return plans;
 	}
 
@@ -61,6 +64,8 @@ public class Manager implements Serializable {
 	{
 		plans.add(p);
 		Logger.log(p.toString() + " hinzugefügt");
+		sortPlans();
+		update();
 	}
 	
 	public void updatePlanStates()
@@ -108,6 +113,12 @@ public class Manager implements Serializable {
 				ProgramSettings.getInstance().setLastDate(ProgramSettings.getInstance().getLastDate().getNextMonth());
 			}
 		}	
+	}
+	
+	public void update()
+	{
+		updateMonthlyBooking();
+		updatePlanStates();
 	}
 	
 	public void sortPlans()
@@ -199,6 +210,8 @@ public class Manager implements Serializable {
 	public void load(String path) throws FileNotFoundException
 	{
 		instance = DataSerializer.loadManager(path);
+		sortPlans();
+		update();
 	}
 	
 	public void save(String path)

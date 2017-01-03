@@ -1,38 +1,58 @@
 package userInterface;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
 import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.filechooser.FileNameExtensionFilter;
-
 import applicationLogic.Manager;
 import dataStorage.DataSerializer;
+import dataStorage.PDFGenerator;
+import rawData.BeanAccount;
+import rawData.BeanMoney;
+import rawData.BeanPlan;
 import userInterfaceUtility.BeanPlanListCellRenderer;
 
 public class GUI extends JFrame {
 
 	private JList plans;
+	private JLabel balance;
+	private JLabel monthlyBooking;
 	
 	public GUI()
 	{
@@ -124,6 +144,19 @@ public class GUI extends JFrame {
 		createPopup();
 		setPlanData();
 		
+		JPanel accountDetails = new JPanel(new GridLayout(1,3));
+//		accountDetails.setBorder(BorderFactory.createSoftBevelBorder(0));
+		right.add(accountDetails, BorderLayout.NORTH);
+		JLabel accountDetailsTitle = new JLabel("Aktuelle Kontodaten:");
+		accountDetailsTitle.setFont(new Font(accountDetailsTitle.getFont().getFontName(), Font.PLAIN, 15));
+		balance = new JLabel("Kontostand: " + Manager.getInstance().getAccount().BALANCE().toString());
+		monthlyBooking = new JLabel("Monatliche Buchung: " + Manager.getInstance().getAccount().MONTHLY_BOOKING().toString());
+		accountDetails.add(accountDetailsTitle);
+		accountDetails.add(balance);
+		accountDetails.add(monthlyBooking);
+		
+		
+		
 		//TODO
 	}
 	
@@ -131,6 +164,7 @@ public class GUI extends JFrame {
 	{
 		JMenuBar menu = new JMenuBar();
 		
+		// FILE ---------------
 		JMenu file = new JMenu("Datei");
 			JMenuItem newProject = new JMenuItem("Neues Projekt anlegen");
 			newProject.addActionListener(new ActionListener(){
@@ -162,6 +196,8 @@ public class GUI extends JFrame {
 							try {
 								Manager.getInstance().load(fileChooserResult.getAbsoluteFile().toString());
 								GuiSettings.getInstance().setCurrentSaveFile(fileChooserResult.getAbsolutePath());
+								updateMenuBar();
+								update();
 							} catch (FileNotFoundException e1) {
 								JOptionPane.showMessageDialog(getContentPane(), "Fehler beim laden der Datei:\n"+ e1.getMessage(), "Ladefehler", JOptionPane.ERROR_MESSAGE);
 							}
@@ -171,6 +207,8 @@ public class GUI extends JFrame {
 							try {
 								Manager.getInstance().load(fileChooserResult.getAbsolutePath() + ".kmo");
 								GuiSettings.getInstance().setCurrentSaveFile(fileChooserResult.getAbsolutePath() + ".kmo");
+								updateMenuBar();
+								update();
 							} catch (FileNotFoundException e1) {
 								JOptionPane.showMessageDialog(getContentPane(), "Fehler beim laden der Datei:\n"+ e1.getMessage(), "Ladefehler", JOptionPane.ERROR_MESSAGE);
 							}
@@ -259,6 +297,7 @@ public class GUI extends JFrame {
 			file.add(close);
 		menu.add(file);
 		
+		// EDIT ---------------
 		JMenu edit = new JMenu("Bearbeiten");
 			JMenuItem addPlan = new JMenuItem("Plan hinzufügen");
 			addPlan.addActionListener(new ActionListener(){
@@ -267,7 +306,105 @@ public class GUI extends JFrame {
 				}
 			});
 			edit.add(addPlan);
+			JMenuItem booking = new JMenuItem("Buchung durchführen");
+			booking.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent e){
+					
+					JTextField topicIn = new JTextField();
+					JSpinner amountIn = new JSpinner(new SpinnerNumberModel(0.0,-999999.0,999999.0,0.01));
+					
+					Object[] inputs = {"Betreff:", topicIn, "Menge:", amountIn};
+					
+					int option = JOptionPane.showConfirmDialog(getContentPane(), inputs, "Buchung durchführen", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+					if (option == JOptionPane.OK_OPTION)
+					{
+						if(topicIn.getText().isEmpty())
+						{
+							JOptionPane.showMessageDialog(getContentPane(), "Eine Buchung kann nicht ohne Betreff durchgeführt werden!", "Eingabefehler", JOptionPane.ERROR_MESSAGE);
+						}
+						else
+						{
+							Manager.getInstance().booking(topicIn.getText(), new BeanMoney((double)amountIn.getValue()));
+							update();
+						}
+					}
+				}
+			});
+			edit.add(booking);
+			JMenuItem setAccount = new JMenuItem("Konto initialisieren");
+			setAccount.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent e){
+					
+					JSpinner balanceIn = new JSpinner(new SpinnerNumberModel(Manager.getInstance().getAccount().BALANCE().AMOUNT(),-999999.0,999999.0,0.01));
+					JSpinner monthlyBookingIn = new JSpinner(new SpinnerNumberModel(Manager.getInstance().getAccount().MONTHLY_BOOKING().AMOUNT(),-999999.0,999999.0,0.01));
+					Object[] inputs = {"Kontostand:", balanceIn, "Monatliche Buchung:", monthlyBookingIn};
+					int option = JOptionPane.showConfirmDialog(getContentPane(), inputs, "Konto initialisieren", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+					if (option == JOptionPane.OK_OPTION)
+					{
+						 Manager.getInstance().setAccount(new BeanAccount((double)balanceIn.getValue(), (double)monthlyBookingIn.getValue()));
+						 update();
+					}
+				}
+			});
+			edit.add(setAccount);
 		menu.add(edit);
+		
+		// TOOLS ---------------
+		JMenu tools = new JMenu("Werkzeuge");
+			JMenu print = new JMenu("PDF Export");
+				JMenuItem printPlans = new JMenuItem("Alle Pläne Exportieren");
+				printPlans.addActionListener(new ActionListener(){
+					public void actionPerformed(ActionEvent e){
+						final JFileChooser fileChooser = new JFileChooser();
+						FileNameExtensionFilter ff = new FileNameExtensionFilter("PDF Dokument", "pdf");
+						fileChooser.setAcceptAllFileFilterUsed(false);
+						fileChooser.setApproveButtonText("Exportieren");
+						fileChooser.setFileFilter(ff);					
+						if(fileChooser.showOpenDialog(getContentPane()) == 0)
+						{
+							File fileChooserResult = fileChooser.getSelectedFile();
+
+							if(fileChooserResult.getAbsoluteFile().toString().endsWith(".pdf"))
+							{
+								try {
+									PDFGenerator.generatePlanList(fileChooserResult.getAbsolutePath(), Manager.getInstance().getPlans());
+								} catch (IOException e1) {
+									JOptionPane.showMessageDialog(getContentPane(), "Fehler beim exportieren der Datei: " + e1.getMessage(), "Export Fehler", JOptionPane.ERROR_MESSAGE);
+								}
+							}
+							else
+							{
+								try {
+									PDFGenerator.generatePlanList(fileChooserResult.getAbsolutePath() + ".pdf", Manager.getInstance().getPlans());
+								} catch (IOException e1) {
+									JOptionPane.showMessageDialog(getContentPane(), "Fehler beim exportieren der Datei: " + e1.getMessage(), "Export Fehler", JOptionPane.ERROR_MESSAGE);
+								}
+							}
+						}
+					}
+				});
+				print.add(printPlans);
+				JMenuItem printFuture = new JMenuItem("Zukünftigen Kontoverlauf Exportieren");
+				//TODO
+				print.add(printFuture);
+				JMenuItem printFinances = new JMenuItem("Aktuelle Kontodetails Exportieren");
+				//TODO
+				print.add(printFinances);
+				JMenuItem printComplete = new JMenuItem("Komplettübersicht Exportieren");
+				//TODO
+				print.add(printComplete);
+			tools.add(print);
+			JMenuItem converter = new JMenuItem("Währungsrechner");
+			//TODO
+			tools.add(converter);
+		menu.add(tools);
+		
+		// SETTINGS ---------------
+		JMenu settings = new JMenu("Optionen");
+			JMenuItem preferences = new JMenuItem("Einstellungen");
+			//TODO
+			settings.add(preferences);
+		menu.add(settings);
 		
 		return menu;
 	}
@@ -279,18 +416,156 @@ public class GUI extends JFrame {
 	
 	private void createPopup()
 	{
-		//TODO
+		// Main Menu
+				JPopupMenu popupMenu = new JPopupMenu();
+				
+				// Show Submenu
+				JMenu show = new JMenu("Anzeigen");
+					JMenuItem details = new JMenuItem("Detailübersicht");
+					//TODO
+					show.add(details);
+					JMenuItem website = new JMenuItem("Website");
+					//TODO
+					JMenuItem tracking = new JMenuItem("Sendungsverfolgung");
+					//TODO
+					
+				JMenu edit = new JMenu("Bearbeiten");
+					JMenuItem change = new JMenuItem("Verändern");
+					//TODO
+					edit.add(change);
+					JMenuItem finish = new JMenuItem("Abschließen");
+					finish.addActionListener(new ActionListener(){
+						public void actionPerformed(ActionEvent e){
+							Manager.getInstance().finalizePlan((BeanPlan)plans.getSelectedValue(), ((BeanPlan)plans.getSelectedValue()).getAmount());
+							update();
+						}
+					});
+					edit.add(finish);
+					JMenuItem delete = new JMenuItem("Löschen");
+					delete.addActionListener(new ActionListener(){
+						public void actionPerformed(ActionEvent e){
+							Manager.getInstance().deletePlan((BeanPlan)plans.getSelectedValue());
+							update();
+						}
+					});
+					edit.add(delete);
+				
+				JMenuItem print = new JMenuItem("Als PDF Exportieren");
+				print.addActionListener(new ActionListener(){
+						public void actionPerformed(ActionEvent e)
+						{
+							if(plans.getSelectedValuesList().size() > 1)
+							{
+								final JFileChooser fileChooser = new JFileChooser();
+								FileNameExtensionFilter ff = new FileNameExtensionFilter("PDF Dokument", "pdf");
+								fileChooser.setAcceptAllFileFilterUsed(false);
+								fileChooser.setApproveButtonText("Exportieren");
+								fileChooser.setFileFilter(ff);					
+								if(fileChooser.showOpenDialog(getContentPane()) == 0)
+								{
+									File fileChooserResult = fileChooser.getSelectedFile();
+
+									if(fileChooserResult.getAbsoluteFile().toString().endsWith(".pdf"))
+									{
+										try {
+											PDFGenerator.generatePlanList(fileChooserResult.getAbsolutePath(), (List<BeanPlan>)plans.getSelectedValuesList());
+										} catch (IOException e1) {
+											JOptionPane.showMessageDialog(getContentPane(), "Fehler beim exportieren der Datei: " + e1.getMessage(), "Export Fehler", JOptionPane.ERROR_MESSAGE);
+										}
+									}
+									else
+									{
+										try {
+											PDFGenerator.generatePlanList(fileChooserResult.getAbsolutePath() + ".pdf", (List<BeanPlan>)plans.getSelectedValuesList());
+										} catch (IOException e1) {
+											JOptionPane.showMessageDialog(getContentPane(), "Fehler beim exportieren der Datei: " + e1.getMessage(), "Export Fehler", JOptionPane.ERROR_MESSAGE);
+										}
+									}
+								}
+							}
+							else
+							{
+								final JFileChooser fileChooser = new JFileChooser();
+								FileNameExtensionFilter ff = new FileNameExtensionFilter("PDF Dokument", "pdf");
+								fileChooser.setAcceptAllFileFilterUsed(false);
+								fileChooser.setApproveButtonText("Exportieren");
+								fileChooser.setFileFilter(ff);					
+								if(fileChooser.showOpenDialog(getContentPane()) == 0)
+								{
+									File fileChooserResult = fileChooser.getSelectedFile();
+
+									if(fileChooserResult.getAbsoluteFile().toString().endsWith(".pdf"))
+									{
+										try {
+											PDFGenerator.generatePlanDetails(fileChooserResult.getAbsolutePath(), (BeanPlan)plans.getSelectedValue());
+										} catch (IOException e1) {
+											JOptionPane.showMessageDialog(getContentPane(), "Fehler beim exportieren der Datei: " + e1.getMessage(), "Export Fehler", JOptionPane.ERROR_MESSAGE);
+										}
+									}
+									else
+									{
+										try {
+											PDFGenerator.generatePlanDetails(fileChooserResult.getAbsolutePath() + ".pdf", (BeanPlan)plans.getSelectedValue());
+										} catch (IOException e1) {
+											JOptionPane.showMessageDialog(getContentPane(), "Fehler beim exportieren der Datei: " + e1.getMessage(), "Export Fehler", JOptionPane.ERROR_MESSAGE);
+										}
+									}
+								}
+							}
+						}
+					});
+									
+				// Add MouseListener
+		        plans.addMouseListener(new MouseAdapter() {
+		         public void mouseClicked(MouseEvent me) {
+		            if (SwingUtilities.isRightMouseButton(me) && !plans.isSelectionEmpty())
+		            {
+		               if(plans.getSelectedValuesList().size() > 1)
+		               {
+		            	   popupMenu.remove(show);
+		            	   popupMenu.remove(edit);
+		            	   popupMenu.add(print);
+		            	               	   
+		            	   popupMenu.show(plans, me.getX(), me.getY());
+		               }
+		               else
+		               {
+		            	   if(!((BeanPlan)plans.getSelectedValue()).getWeblink().isEmpty())
+		            		   show.add(website);
+		            	   else
+		            		   show.remove(website);
+		            	   
+		            	   if(!((BeanPlan)plans.getSelectedValue()).getTrackingId().isEmpty())
+		            		   show.add(tracking);
+		            	   else
+		            		   show.remove(tracking);
+		            	   
+		            	   popupMenu.add(show);
+		            	   popupMenu.add(edit);
+		            	   popupMenu.add(print);
+		            	   
+		            	   popupMenu.show(plans, me.getX(), me.getY());
+		               }
+		            }
+		         }});
+		      
 	}
 
 	public void update()
 	{
 		setPlanData();
-		//TODO
+		setAccountData();
 	}
 	
 	private void setPlanData()
 	{
 		plans.setListData(Manager.getInstance().getPlans().toArray());
+	}
+	
+	private void setAccountData()
+	{
+		balance.setText("Kontostand: " + Manager.getInstance().getAccount().BALANCE().toString());
+		monthlyBooking.setText("Monatliche Buchung: " + Manager.getInstance().getAccount().MONTHLY_BOOKING().toString());
 	}
 
 	// Button Functions

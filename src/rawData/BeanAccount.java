@@ -9,8 +9,8 @@ public class BeanAccount implements Serializable{
 	
 	public BeanAccount()
 	{
-		balance = new BeanMoney();
-		balance = new BeanMoney();
+		balance = new BeanMoney(0);
+		monthlyBooking = new BeanMoney(0);
 	}
 	
 	public BeanAccount(double balance, double monthlyBooking)
