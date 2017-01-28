@@ -213,18 +213,20 @@ public class Manager implements Serializable {
 	{
 		ArrayList<Double> result = new ArrayList<Double>();
 		
+		ArrayList<BeanPlan> alreadyCounted = new ArrayList<BeanPlan>();
+		
 		double tempBalance = 0;
 		BeanDate tempDate = new BeanDate(true);
 		
 		tempBalance += account.BALANCE().AMOUNT();
 		tempBalance -= account.MONTHLY_BOOKING().AMOUNT();
-		
-		
+	
 		for(BeanPlan p : plans)
 		{
 			if(p.getDate().compare(p.getDate(), new BeanDate(true)) < 0)
 			{
 				tempBalance -= p.getAmount().AMOUNT();
+				alreadyCounted.add(p);
 			}
 		}
 		
@@ -234,7 +236,9 @@ public class Manager implements Serializable {
 			
 			for(BeanPlan p : getPlansInMonth(tempDate))
 			{
-				tempBalance -= p.getAmount().AMOUNT();
+				if(!alreadyCounted.contains(p)){
+					tempBalance -= p.getAmount().AMOUNT();
+				}
 			}
 			
 			result.add(tempBalance);
