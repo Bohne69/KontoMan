@@ -116,7 +116,7 @@ public class AddPlanDialogue extends JFrame {
 		
 		JPanel amountPanel = new JPanel(new BorderLayout());
 		JLabel amountLabel = new JLabel("Kosten: ");
-		JSpinner amountIn = new JSpinner(new SpinnerNumberModel(0.0,0.0,9999999.0,0.01));
+		JSpinner amountIn = new JSpinner(new SpinnerNumberModel(0.0,-9999999.0,9999999.0,0.01));
 		amountIn.setPreferredSize(descriptionIn.getPreferredSize());
 		amountPanel.add(amountLabel, BorderLayout.WEST);
 		amountPanel.add(amountIn, BorderLayout.EAST);
