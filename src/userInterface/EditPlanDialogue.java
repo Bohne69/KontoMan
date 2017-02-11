@@ -122,7 +122,7 @@ public class EditPlanDialogue extends JFrame {
 		
 		JPanel amountPanel = new JPanel(new BorderLayout());
 		JLabel amountLabel = new JLabel("Kosten: ");
-		JSpinner amountIn = new JSpinner(new SpinnerNumberModel(plan.getAmount().AMOUNT(),0.0,9999999.0,0.01));
+		JSpinner amountIn = new JSpinner(new SpinnerNumberModel(plan.getAmount().AMOUNT(),-9999999.0,9999999.0,0.01));
 		amountIn.setPreferredSize(descriptionIn.getPreferredSize());
 		amountPanel.add(amountLabel, BorderLayout.WEST);
 		amountPanel.add(amountIn, BorderLayout.EAST);
