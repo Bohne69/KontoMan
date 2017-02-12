@@ -66,9 +66,9 @@ public class GUI extends JFrame {
 	{
 		super("Bohnes Kontomanager V4");
 
-		UIManager.put("nimbusBase", GuiSettings.THEME_COLOR);
-		UIManager.put("nimbusBlueGrey", GuiSettings.THEME_COLOR);
-		UIManager.put("control", GuiSettings.THEME_COLOR);
+		UIManager.put("nimbusBase", new Color(69, 128, 67));
+		UIManager.put("nimbusBlueGrey", new Color(69, 128, 67));
+		UIManager.put("control", new Color(69, 128, 67));
 			for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
 		    if ("Nimbus".equals(info.getName())) {
 		    	try {
