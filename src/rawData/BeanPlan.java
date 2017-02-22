@@ -15,7 +15,8 @@ public class BeanPlan implements Serializable, Comparable<BeanPlan> {
 	private BeanPlatform platform;
 	private String weblink;
 	private String trackingId;
-	
+	private boolean calculate = true;
+		
 	//TODO
 	private BeanDate receiveDate;
 	
@@ -127,5 +128,13 @@ public class BeanPlan implements Serializable, Comparable<BeanPlan> {
 	@Override
 	public int compareTo(BeanPlan o) {
 		return date.compare(date, o.date);
+	}
+
+	public boolean shouldCalculate() {
+		return calculate;
+	}
+
+	public void setIfShouldCalculate(boolean calculate) {
+		this.calculate = calculate;
 	}
 }

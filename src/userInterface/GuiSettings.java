@@ -3,12 +3,19 @@ package userInterface;
 import java.awt.Color;
 import java.io.Serializable;
 
+import javax.swing.UIManager;
+
 import dataStorage.DataSerializer;
 
 public class GuiSettings implements Serializable {
 
 	//TODO
-	public static Color THEME_COLOR = new Color(69, 128, 67);
+	public static Color BACKGROUND_COLOR = UIManager.getColor("nimbusLightBackground");
+	public static Color HIGHLIGHT_COLOR = UIManager.getColor("nimbusSelectionBackground");
+	public static Color WARNING_COLOR = new Color(255, 166, 50);
+	public static Color ERROR_COLOR = new Color(224, 62, 62);
+	
+	private double warningThreshold = 100;
 	private String currentSaveFile;
 	private String[] lastProjects = new String[5];
 	
@@ -99,5 +106,16 @@ public class GuiSettings implements Serializable {
 	public static void load()
 	{
 		instance = DataSerializer.loadGuiSettings();
+	}
+
+	
+	public double getWarningThreshold() {
+		return warningThreshold;
+	}
+
+	
+	public void setWarningThreshold(double warningThreshold) {
+		this.warningThreshold = warningThreshold;
+		save();
 	}
 }

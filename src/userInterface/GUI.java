@@ -37,21 +37,31 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
+import javax.swing.JSplitPane;
 import javax.swing.JTextField;
+import javax.swing.LookAndFeel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.UIDefaults;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import applicationLogic.Manager;
 import dataStorage.DataSerializer;
 import dataStorage.PDFGenerator;
 import rawData.BeanAccount;
+import rawData.BeanDate;
 import rawData.BeanMoney;
 import rawData.BeanPlan;
+import rawData.MonthBalanceData;
 import userInterfaceUtility.BeanPlanListCellRenderer;
+import userInterfaceUtility.MonthBalanceDataListCellRenderer;
 import utility.BeanPlanState;
 
 @SuppressWarnings("all")
@@ -61,21 +71,44 @@ public class GUI extends JFrame {
 	private JLabel balance;
 	private JLabel monthlyBooking;
 	private Graph graph;
+	private JTextField planSearchBar;
+	private JList monthBalance; //TODO
+	private JSpinner warningThresholdSpinner;
 	
 	public GUI()
 	{
 		super("Bohnes Kontomanager V4");
 
-		UIManager.put("nimbusBase", new Color(69, 128, 67));
-		UIManager.put("nimbusBlueGrey", new Color(69, 128, 67));
-		UIManager.put("control", new Color(69, 128, 67));
-			for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+		UIManager.put("control", new Color(102,104,106));
+		UIManager.put("info", new Color(115,151,90));
+		UIManager.put("nimbusAlertYellow", new Color(127,105,12));
+		UIManager.put("nimbusBase", new Color(20,44,65));
+		UIManager.put("nimbusDisabledText", new Color(65,65,65));
+		UIManager.put("nimbusFocus", new Color(52,75,100));
+		UIManager.put("nimbusGreen", new Color(80,90,20));
+		UIManager.put("nimbusInfoBlue", new Color(18,41,85));
+		UIManager.put("nimbusLightBackground", new Color(120,120,120));
+		UIManager.put("nimbusOrange", new Color(90,44,0));
+		UIManager.put("nimbusRed", new Color(80,18,12));
+		UIManager.put("nimbusSelectedText", new Color(122,122,122));
+		UIManager.put("nimbusSelectionBackground", new Color(26,47,64));
+		UIManager.put("text", new Color(0,0,0));
+		
+		for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
 		    if ("Nimbus".equals(info.getName())) {
 		    	try {
 					UIManager.setLookAndFeel(info.getClassName());
+					
+					LookAndFeel laf = UIManager.getLookAndFeel();
+					
+					UIDefaults defs = laf.getDefaults();
+					defs.put("Tree.drawHorizontalLines", true);
+					defs.put("Tree.drawVerticalLines", true);
+					defs.put("Tree.linesStyle", "dashed");
+					
 				} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
 						| UnsupportedLookAndFeelException e1) {
-					JOptionPane.showMessageDialog(getContentPane(),"Beim laden des GUI Themes ist ein Fehler aufgetreten:\n" + e1.getMessage(),"GUI Theme Fehler",JOptionPane.ERROR_MESSAGE);
+					e1.printStackTrace();
 				}
 		    }
 		}
@@ -97,6 +130,7 @@ public class GUI extends JFrame {
 		}
 		
 		createGUI();
+		update();
 		
 		addWindowListener(new WindowAdapter() {
 			  public void windowClosing(WindowEvent e) {
@@ -121,7 +155,7 @@ public class GUI extends JFrame {
 				  
 			  }});
 			
-		setPreferredSize(new Dimension(1446,519));
+		setPreferredSize(new Dimension(1720,820));
 //		setPreferredSize(new Dimension(1520,890));
 		
 		pack();
@@ -132,6 +166,8 @@ public class GUI extends JFrame {
 		
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		setVisible(true);
+		
+		setExtendedState(JFrame.MAXIMIZED_BOTH);
 	}
 	
 	private void createGUI()
@@ -143,8 +179,29 @@ public class GUI extends JFrame {
 		JPanel left = new JPanel(new BorderLayout());
 		JPanel right = new JPanel(new BorderLayout());
 		
-		add(left);
-		add(right);
+		JSplitPane middleSplitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
+		middleSplitter.setOneTouchExpandable(true);
+		middleSplitter.setResizeWeight(0.5);
+		add(middleSplitter, BorderLayout.CENTER);
+		//add(left);
+		//add(right);
+		
+		JPanel leftTop = new JPanel(new BorderLayout());
+		leftTop.add(new JLabel(" Suche: "), BorderLayout.WEST);
+		planSearchBar = new JTextField();
+		planSearchBar.getDocument().addDocumentListener(new DocumentListener() {
+			public void removeUpdate(DocumentEvent e) {
+				update();
+			}
+			public void insertUpdate(DocumentEvent e) {
+				update();
+			}
+			public void changedUpdate(DocumentEvent e) {
+				update();
+			}
+		});
+		leftTop.add(planSearchBar, BorderLayout.CENTER);
+		left.add(leftTop, BorderLayout.NORTH);
 		
 		plans = new JList();
 		plans.setCellRenderer(new BeanPlanListCellRenderer());
@@ -154,7 +211,7 @@ public class GUI extends JFrame {
 		setPlanData();
 		
 		JPanel accountDetails = new JPanel(new GridLayout(1,3));
-		right.add(accountDetails, BorderLayout.NORTH);
+		//right.add(accountDetails, BorderLayout.NORTH);
 		JLabel accountDetailsTitle = new JLabel("Aktuelle Kontodaten:");
 		accountDetailsTitle.setHorizontalAlignment(SwingConstants.CENTER);
 		accountDetailsTitle.setFont(new Font(accountDetailsTitle.getFont().getFontName(), Font.PLAIN, 15));
@@ -166,8 +223,21 @@ public class GUI extends JFrame {
 		accountDetails.add(balance);
 		accountDetails.add(monthlyBooking);
 		
+		JPanel monthBalanceDetails = new JPanel(new BorderLayout());
+		monthBalanceDetails.setMinimumSize(new Dimension(1038, 482));
+		monthBalance = new JList();
+		monthBalance.setCellRenderer(new MonthBalanceDataListCellRenderer());
+		JScrollPane monthBalanceScroller = new JScrollPane(monthBalance);
+		monthBalanceDetails.add(accountDetails, BorderLayout.NORTH);
+		monthBalanceDetails.add(monthBalanceScroller, BorderLayout.CENTER);
+		//TODO
+		
 		graph = new Graph(Manager.getInstance().getFutureScores(), Manager.getInstance().getFutureMonths());
-		right.add(graph, BorderLayout.CENTER);
+				
+		JSplitPane graphSplitter = new JSplitPane(JSplitPane.VERTICAL_SPLIT, graph, monthBalanceDetails);
+		graphSplitter.setOneTouchExpandable(true);
+		graphSplitter.setResizeWeight(1);
+		right.add(graphSplitter, BorderLayout.CENTER);
 	}
 	
 	private JMenuBar createMenuBar()
@@ -409,7 +479,7 @@ public class GUI extends JFrame {
 							if(fileChooserResult.getAbsoluteFile().toString().endsWith(".pdf"))
 							{
 								try {
-									PDFGenerator.generateFutureBalance(fileChooserResult.getAbsolutePath());
+									PDFGenerator.generateDetailedAccountProgression(fileChooserResult.getAbsolutePath());
 								} catch (IOException e1) {
 									JOptionPane.showMessageDialog(getContentPane(), "Fehler beim exportieren der Datei: " + e1.getMessage(), "Export Fehler", JOptionPane.ERROR_MESSAGE);
 								}
@@ -417,7 +487,7 @@ public class GUI extends JFrame {
 							else
 							{
 								try {
-									PDFGenerator.generateFutureBalance(fileChooserResult.getAbsolutePath() + ".pdf");
+									PDFGenerator.generateDetailedAccountProgression(fileChooserResult.getAbsolutePath() + ".pdf");
 								} catch (IOException e1) {
 									JOptionPane.showMessageDialog(getContentPane(), "Fehler beim exportieren der Datei: " + e1.getMessage(), "Export Fehler", JOptionPane.ERROR_MESSAGE);
 								}
@@ -456,11 +526,22 @@ public class GUI extends JFrame {
 		menu.add(tools);
 		
 		// SETTINGS ---------------
-//		JMenu settings = new JMenu("Optionen");
-//			JMenuItem preferences = new JMenuItem("Einstellungen");
-//			//TODO
-//			settings.add(preferences);
-//		menu.add(settings);
+		JMenu settings = new JMenu("Optionen");
+			JPanel threshold = new JPanel(new BorderLayout());
+			threshold.add(new JLabel("Warnungsschwelle"), BorderLayout.WEST);
+			warningThresholdSpinner = new JSpinner(new SpinnerNumberModel(GuiSettings.getInstance().getWarningThreshold(), 0, 99999, 1));
+			warningThresholdSpinner.addChangeListener(new ChangeListener() {
+				public void stateChanged(ChangeEvent arg0) {
+					if((double)warningThresholdSpinner.getValue() != GuiSettings.getInstance().getWarningThreshold())
+					{
+						GuiSettings.getInstance().setWarningThreshold((double)warningThresholdSpinner.getValue());
+						update();
+					}
+				}
+			});
+			threshold.add(warningThresholdSpinner, BorderLayout.CENTER);
+			settings.add(threshold);
+		menu.add(settings);
 		
 		return menu;
 	}
@@ -502,6 +583,18 @@ public class GUI extends JFrame {
 							openPlatformWebPage((BeanPlan)plans.getSelectedValue());
 						}
 					});
+					
+				JMenuItem toggleCalc = new JMenuItem("Berechnung umschalten");
+				toggleCalc.addActionListener(new ActionListener(){
+					public void actionPerformed(ActionEvent e){
+						for(BeanPlan b : (ArrayList<BeanPlan>)plans.getSelectedValuesList())
+						{
+							b.setIfShouldCalculate(!b.shouldCalculate());
+						}
+						update();
+					}
+				});
+				popupMenu.add(toggleCalc);
 					
 				JMenu edit = new JMenu("Bearbeiten");
 					JMenuItem change = new JMenuItem("Verändern");
@@ -665,6 +758,7 @@ public class GUI extends JFrame {
 		setPlanData();
 		setAccountData();
 		setGraphData();
+		setMonthlyBalanceView();
 	}
 	
 	private void setGraphData()
@@ -674,7 +768,34 @@ public class GUI extends JFrame {
 	
 	private void setPlanData()
 	{
-		plans.setListData(Manager.getInstance().getPlans().toArray());
+		plans.setListData(searchPlans(planSearchBar.getText()).toArray());
+	}
+	
+	private ArrayList<BeanPlan> searchPlans(String toSearch)
+	{
+		if(toSearch.isEmpty())
+		{
+			return Manager.getInstance().getPlans();
+		}
+		
+		toSearch = toSearch.toLowerCase();
+		
+		ArrayList<BeanPlan> res = new ArrayList<BeanPlan>();
+		
+		for(BeanPlan b : Manager.getInstance().getPlans())
+		{
+			
+			if(b.getDescription().toLowerCase().contains(toSearch)
+					|| b.getPlatform().NAME().toLowerCase().contains(toSearch)
+					|| b.getState().toString().toLowerCase().contains(toSearch)
+					|| (b.getAmount().AMOUNT()+"").toLowerCase().contains(toSearch))
+			{
+				res.add(b);
+			}
+	
+		}
+		
+		return res;
 	}
 	
 	private void setAccountData()
@@ -683,6 +804,50 @@ public class GUI extends JFrame {
 		monthlyBooking.setText("Monatliche Buchung: " + Manager.getInstance().getAccount().MONTHLY_BOOKING().toString());
 	}
 
+	private void setMonthlyBalanceView()
+	{
+		MonthBalanceData[] data = new MonthBalanceData[12];
+		for(int i = 0; i < 12; i++){data[i] = new MonthBalanceData();}
+		
+		BeanMoney currentBalance = new BeanMoney(Manager.getInstance().getAccount().BALANCE().AMOUNT());
+		BeanDate tmp = new BeanDate(true);
+		List<BeanDate> months = new ArrayList<BeanDate>();
+		for(int i = 0; i < 12; i++)
+		{
+			months.add(new BeanDate(tmp.PART(), tmp.MONTH(), tmp.YEAR()));
+			tmp = tmp.getNextMonth();
+		}
+		
+		data[0].setMonthStart(new BeanMoney(currentBalance.AMOUNT()));
+		
+		for(int i = 0; i < 12; i++)
+		{
+			if(i > 0)
+			{
+				currentBalance.addAmount(Manager.getInstance().getAccount().MONTHLY_BOOKING().AMOUNT());
+				data[i].setMonthStart(new BeanMoney(currentBalance.AMOUNT()));
+			}
+			data[i].setDate(months.get(i).toSimpleString());
+			
+			data[i].setMonthMinimum(new BeanMoney(currentBalance.AMOUNT()));
+			for(BeanPlan p : Manager.getInstance().getPlansInMonth(months.get(i)))
+			{
+				if(p.shouldCalculate())
+				{
+					currentBalance.addAmount(-p.getAmount().AMOUNT());
+					if(data[i].getMonthMinimum().AMOUNT()  > currentBalance.AMOUNT())
+					{
+						data[i].setMonthMinimum(new BeanMoney(currentBalance.AMOUNT()));
+					}
+				}
+			}
+			
+			data[i].setMonthEnd(new BeanMoney(currentBalance.AMOUNT()));
+		}
+		
+		monthBalance.setListData(data);
+	}
+	
 	// Button Functions
 	
 	private boolean save()

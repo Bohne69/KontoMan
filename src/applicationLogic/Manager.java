@@ -225,8 +225,11 @@ public class Manager implements Serializable {
 		{
 			if(p.getDate().compare(p.getDate(), new BeanDate(true)) < 0)
 			{
-				tempBalance -= p.getAmount().AMOUNT();
-				alreadyCounted.add(p);
+				if(p.shouldCalculate())
+				{
+					tempBalance -= p.getAmount().AMOUNT();
+					alreadyCounted.add(p);
+				}
 			}
 		}
 		
@@ -236,8 +239,12 @@ public class Manager implements Serializable {
 			
 			for(BeanPlan p : getPlansInMonth(tempDate))
 			{
-				if(!alreadyCounted.contains(p)){
-					tempBalance -= p.getAmount().AMOUNT();
+				if(!alreadyCounted.contains(p))
+				{
+					if(p.shouldCalculate())
+					{
+						tempBalance -= p.getAmount().AMOUNT();
+					}
 				}
 			}
 			

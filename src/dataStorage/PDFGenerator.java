@@ -8,6 +8,7 @@ import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.AreaBreak;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.property.TextAlignment;
@@ -252,6 +253,116 @@ public class PDFGenerator {
 		}
 		
 		document.add(maintable);
+		
+		document.close();
+		pdf.close();
+		writer.close();
+	}
+
+	public static void generateDetailedAccountProgression(String filename) throws IOException
+	{
+		PdfWriter writer = new PdfWriter(filename);
+		PdfDocument pdf = new PdfDocument(writer);
+		Document document = new Document(pdf, PageSize.A4);
+
+		Paragraph title = new Paragraph("Kontoverlauf über die nächsten 12 Monate");
+		title.setPaddingTop(-25f);
+		title.setBold();
+		title.setTextAlignment(TextAlignment.CENTER);
+		title.setFontSize(titleSize);
+		document.add(title);
+		
+		document.setFontSize(8);
+		
+		BeanMoney currentBalance = Manager.getInstance().getAccount().BALANCE();
+		
+		BeanDate tmp = new BeanDate(true);
+		List<BeanDate> months = new ArrayList<BeanDate>();
+		for(int i = 0; i < 12; i++)
+		{
+			months.add(tmp);
+			tmp = tmp.getNextMonth();
+		}
+		
+		for(int i = 0; i < 12; i++)
+		{
+			Paragraph pageTitle = new Paragraph(months.get(i).toSimpleString());
+			pageTitle.setBold();
+			pageTitle.setTextAlignment(TextAlignment.CENTER);
+			pageTitle.setFontSize(10f);
+			document.add(pageTitle);
+			document.setFontSize(8);
+			
+			
+			Table maintable = new Table(3);
+			maintable.setWidthPercent(100);
+			maintable.setFontSize(mainSize);		
+			Paragraph tablelabel1 = new Paragraph("Ereignis");
+			tablelabel1.setBold();		
+			Paragraph tablelabel2 = new Paragraph("Datum");
+			tablelabel2.setBold();		
+			Paragraph tablelabel3 = new Paragraph("Resultierender Kontostand");
+			tablelabel3.setBold();		
+			maintable.addCell(tablelabel1);
+			maintable.addCell(tablelabel2);
+			maintable.addCell(tablelabel3);
+			
+			
+			maintable.addCell("Kontostand zu Monatsbeginn");
+			maintable.addCell(new BeanDate(BeanMonthParts.ANFANG, months.get(i).MONTH(), months.get(i).YEAR()).toString());
+			maintable.addCell(currentBalance.toString());
+			
+			
+			if(i > 0)
+			{
+				maintable.addCell("Kontostand nach monatlicher Buchung");
+				maintable.addCell(new BeanDate(BeanMonthParts.ANFANG, months.get(i).MONTH(), months.get(i).YEAR()).toString());
+				currentBalance.addAmount(Manager.getInstance().getAccount().MONTHLY_BOOKING().AMOUNT());
+				maintable.addCell(currentBalance.toString());
+			}
+	
+			
+			if(Manager.getInstance().getPlansInMonth(months.get(i)).size() > 1)
+			{
+				maintable.addCell(" ");
+				maintable.addCell(" ");
+				maintable.addCell(" ");
+			}
+			else if(Manager.getInstance().getPlansInMonth(months.get(i)).size() == 1 && Manager.getInstance().getPlans().get(0).shouldCalculate())
+			{
+				maintable.addCell(" ");
+				maintable.addCell(" ");
+				maintable.addCell(" ");
+			}
+			
+
+			for(BeanPlan p : Manager.getInstance().getPlansInMonth(months.get(i)))
+			{
+				if(p.shouldCalculate())
+				{
+					maintable.addCell(p.getDescription() + " (" + p.getPlatform().NAME() + ", " + p.getAmount().toString() + ")");
+					maintable.addCell(p.getDate().toString());
+					currentBalance.addAmount(-p.getAmount().AMOUNT());
+					maintable.addCell(currentBalance.toString());
+				}
+			}
+			
+			
+			maintable.addCell(" ");
+			maintable.addCell(" ");
+			maintable.addCell(" ");
+			
+			
+			maintable.addCell("Kontostand zu Monatsende");
+			maintable.addCell(new BeanDate(BeanMonthParts.ENDE, months.get(i).MONTH(), months.get(i).YEAR()).toString());
+			maintable.addCell(currentBalance.toString());
+			
+			
+			document.add(maintable);
+			
+			if(i != 11)
+				document.add(new AreaBreak());		
+		}
 		
 		document.close();
 		pdf.close();

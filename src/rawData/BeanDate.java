@@ -12,7 +12,7 @@ public class BeanDate implements Comparator<BeanDate>, Serializable{
 	private int year;
 	private BeanMonths month;
 	private BeanMonthParts part;
-	
+
 	public BeanDate(boolean useCurrent)
 	{
 		if(useCurrent)

@@ -197,11 +197,6 @@ public class AddPlanDialogue extends JFrame {
 					JOptionPane.showMessageDialog(getContentPane(), "Es wurde keine Beschreibung eingegeben!", "Erstellungsfehler", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
-				else if((double)amountIn.getValue() == 0)
-				{
-					JOptionPane.showMessageDialog(getContentPane(), "Es kann kein Plan von 0€ angegeben werden!", "Erstellungsfehler", JOptionPane.ERROR_MESSAGE);
-					return;
-				}
 				else if(platformIn.getSelectedItem() == null)
 				{
 					JOptionPane.showMessageDialog(getContentPane(), "Es muss eine Plattform ausgewählt werden!", "Erstellungsfehler", JOptionPane.ERROR_MESSAGE);
