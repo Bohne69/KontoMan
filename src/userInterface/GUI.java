@@ -1,5 +1,7 @@
 package userInterface;
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Desktop;
@@ -18,6 +20,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -72,7 +75,7 @@ public class GUI extends JFrame {
 	private JLabel monthlyBooking;
 	private Graph graph;
 	private JTextField planSearchBar;
-	private JList monthBalance; //TODO
+	private JList monthBalance;
 	private JSpinner warningThresholdSpinner;
 	
 	public GUI()
@@ -596,6 +599,29 @@ public class GUI extends JFrame {
 				});
 				popupMenu.add(toggleCalc);
 					
+				JMenuItem addImage = new JMenuItem("Bild hinzufügen");
+				addImage.addActionListener(new ActionListener(){
+					public void actionPerformed(ActionEvent e){
+						final JFileChooser fileChooser = new JFileChooser();
+						fileChooser.setMultiSelectionEnabled(true);
+						FileNameExtensionFilter ff = new FileNameExtensionFilter("Bilder", "png", "jpg", "jpeg", "gif");
+						fileChooser.setAcceptAllFileFilterUsed(false);
+						fileChooser.setApproveButtonText("Verwenden");
+						fileChooser.setFileFilter(ff);					
+						if(fileChooser.showOpenDialog(getContentPane()) == 0)
+						{
+							File fileChooserResult = fileChooser.getSelectedFile();
+
+							File target = new File("res/" + fileChooserResult.getName());
+
+							try { Files.copy(fileChooserResult.toPath(), target.toPath(), REPLACE_EXISTING);
+							((BeanPlan)plans.getSelectedValue()).setImgPath(target.getAbsolutePath()); } catch (IOException e1) {e1.printStackTrace();};
+							
+							update();
+						}
+					}
+				});
+				
 				JMenu edit = new JMenu("Bearbeiten");
 					JMenuItem change = new JMenuItem("Verändern");
 					change.addActionListener(new ActionListener(){
@@ -722,6 +748,7 @@ public class GUI extends JFrame {
 		            {
 		               if(plans.getSelectedValuesList().size() > 1)
 		               {
+		            	   popupMenu.remove(addImage);
 		            	   popupMenu.remove(show);
 		            	   popupMenu.remove(edit);
 		            	   popupMenu.add(print);
@@ -742,6 +769,7 @@ public class GUI extends JFrame {
 		            	   
 		            	   show.add(platformPage);
 		            	   
+		            	   popupMenu.add(addImage);
 		            	   popupMenu.add(show);
 		            	   popupMenu.add(edit);
 		            	   popupMenu.add(print);

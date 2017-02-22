@@ -7,8 +7,10 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.io.IOException;
 
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -24,20 +26,28 @@ public class BeanPlanListCellRenderer extends JPanel implements ListCellRenderer
 	private JLabel desc;
 	private JLabel platform;
 	private JLabel date;
-//	private JLabel state;
 	private JLabel amount;
+	
+	private JLabel img;
 	
 	public BeanPlanListCellRenderer()
 	{
 		setOpaque(true);
 		
+		setLayout(new BorderLayout());
+				
+		JPanel main = new JPanel(new BorderLayout());
+		add(main, BorderLayout.CENTER);
+		
+		main.setOpaque(false);
+		
 		desc = new JLabel();
 		platform = new JLabel();
 		date = new JLabel();
-//		state = new JLabel();
 		amount = new JLabel();
-
-		setLayout(new GridBagLayout());
+		img = new JLabel(new ImageIcon());
+		
+		main.setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 
 		c.anchor = GridBagConstraints.WEST;
@@ -45,25 +55,20 @@ public class BeanPlanListCellRenderer extends JPanel implements ListCellRenderer
 		c.gridx = 0;
 		
 		c.gridy = 0;
-//		desc.setPreferredSize(new Dimension(225,15));
-		add(desc, c);
+		main.add(desc, c);
 		
 		c.gridy = 1;
-//		platform.setPreferredSize(new Dimension(100,15));
-		add(amount, c);
+		main.add(amount, c);
 		
 		c.gridy = 2;
-//		date.setPreferredSize(new Dimension(150,15));
-		add(platform, c);		
+		main.add(platform, c);		
 		
 		c.gridy = 3;
-//		state.setPreferredSize(new Dimension(150,15));
-		add(date, c);
-						
-//		c.gridy = 4;
-//		amount.setPreferredSize(new Dimension(75,15));
-//		add(state, c);
-		
+		main.add(date, c);
+
+		img.setMinimumSize(new Dimension(75,75));
+		img.setMaximumSize(new Dimension(75,75));
+		add(img, BorderLayout.WEST);
 		
 		setBorder(BorderFactory.createSoftBevelBorder(0));
 	}
@@ -72,10 +77,13 @@ public class BeanPlanListCellRenderer extends JPanel implements ListCellRenderer
 	{
 		BeanPlan entry = (BeanPlan) value;
 		
+		if(!entry.getImgPath().isEmpty()){
+			try { img.setIcon(new ImageIcon(entry.getThumbnail())); } catch (IOException e) { e.printStackTrace(); }
+		}
+		
 		desc.setText(entry.getDescription());
 		platform.setText(entry.getPlatform().NAME());
 		date.setText(entry.getDate().toString() + " (" + entry.getState().stringify(entry.getState()) + ")");
-		//state.setText(entry.getState().stringify(entry.getState()));
 		amount.setText(entry.getAmount().toString());
 				
 		if(isSelected)
