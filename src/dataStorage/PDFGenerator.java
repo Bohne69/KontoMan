@@ -274,13 +274,13 @@ public class PDFGenerator {
 		
 		document.setFontSize(8);
 		
-		BeanMoney currentBalance = Manager.getInstance().getAccount().BALANCE();
+		BeanMoney currentBalance = new BeanMoney(Manager.getInstance().getAccount().BALANCE().AMOUNT());
 		
 		BeanDate tmp = new BeanDate(true);
 		List<BeanDate> months = new ArrayList<BeanDate>();
 		for(int i = 0; i < 12; i++)
 		{
-			months.add(tmp);
+			months.add(new BeanDate(tmp.PART(), tmp.MONTH(), tmp.YEAR()));
 			tmp = tmp.getNextMonth();
 		}
 		
