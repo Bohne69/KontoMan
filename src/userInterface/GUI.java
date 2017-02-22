@@ -55,6 +55,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
 import applicationLogic.Manager;
 import dataStorage.DataSerializer;
 import dataStorage.PDFGenerator;
@@ -134,6 +135,8 @@ public class GUI extends JFrame {
 		
 		createGUI();
 		update();
+		
+		cleanupImages();
 		
 		addWindowListener(new WindowAdapter() {
 			  public void windowClosing(WindowEvent e) {
@@ -612,7 +615,7 @@ public class GUI extends JFrame {
 						{
 							File fileChooserResult = fileChooser.getSelectedFile();
 
-							File target = new File("res/" + fileChooserResult.getName());
+							File target = new File("img/" + fileChooserResult.getName());
 
 							try { Files.copy(fileChooserResult.toPath(), target.toPath(), REPLACE_EXISTING);
 							((BeanPlan)plans.getSelectedValue()).setImgPath(target.getAbsolutePath()); } catch (IOException e1) {e1.printStackTrace();};
@@ -777,8 +780,12 @@ public class GUI extends JFrame {
 		            	   popupMenu.show(plans, me.getX(), me.getY());
 		               }
 		            }
+		            else if(SwingUtilities.isLeftMouseButton(me) && !plans.isSelectionEmpty() && me.getClickCount() == 2)
+		            {
+		            	PlanDetailsDialogue.open(GUI.this, (BeanPlan)plans.getSelectedValue());
+		            }
 		         }});
-		      
+
 	}
 
 	public void update()
@@ -998,22 +1005,22 @@ public class GUI extends JFrame {
 		}
 	}
 
-	private void openWeblinkPage(BeanPlan p)
+	public static void openWeblinkPage(BeanPlan p)
 	{
 		if(!p.getWeblink().isEmpty())
 		{
 			  try {
 					Desktop.getDesktop().browse(new URI(p.getWeblink()));
 				} catch (IOException e) {
-					JOptionPane.showMessageDialog(getContentPane(), e.getMessage(), "Browser Error", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(null, e.getMessage(), "Browser Error", JOptionPane.ERROR_MESSAGE);
 				} catch (URISyntaxException e) {
-					JOptionPane.showMessageDialog(getContentPane(), e.getMessage(), "Browser Error", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(null, e.getMessage(), "Browser Error", JOptionPane.ERROR_MESSAGE);
 				}
 			  return;
 		}
 		else
 		{
-			JOptionPane.showMessageDialog(getContentPane(), "The selected Plan has no Weblink connected to it!", "Plan Weblink Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, "The selected Plan has no Weblink connected to it!", "Plan Weblink Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -1036,4 +1043,28 @@ public class GUI extends JFrame {
 		}
 	}
 
+	private void cleanupImages()
+	{
+		ArrayList<File> allFiles = new ArrayList<File>();
+		for(final File f : new File("img").listFiles())
+		{
+			allFiles.add(f);
+		}
+		
+		for(final File f : new File("img").listFiles()) 
+		{
+			for(BeanPlan p : Manager.getInstance().getPlans())
+			{
+				if(f.getAbsolutePath().equals(p.getImgPath()))
+				{
+					allFiles.remove(f);
+				}
+			}
+	    }
+		
+		for(File f : allFiles)
+		{
+			f.delete();
+		}
+	}
 }

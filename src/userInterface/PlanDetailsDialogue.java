@@ -1,5 +1,7 @@
 package userInterface;
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -8,7 +10,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.time.LocalDate;
 
 import javax.swing.BoxLayout;
@@ -16,6 +21,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -24,6 +30,7 @@ import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import applicationLogic.Manager;
 import data.Platforms;
@@ -152,6 +159,49 @@ public class PlanDetailsDialogue extends JFrame {
 		trackingIDPanel.add(trackingIDLabel, BorderLayout.WEST);
 		trackingIDPanel.add(trackingIDIn, BorderLayout.EAST);
 		main.add(trackingIDPanel);
+		
+		JButton edit = new JButton("Bearbeiten");
+		bottom.add(edit);
+		edit.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e)
+			{
+				EditPlanDialogue.open(caller, plan);
+				dispose();
+			}
+		});
+		
+		JButton showWeb = new JButton("Website anzeigen");
+		bottom.add(showWeb);
+		showWeb.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e)
+			{
+				GUI.openWeblinkPage(plan);
+			}
+		});
+
+		JButton image = new JButton("Bild anpassen");
+		bottom.add(image);
+		image.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e)
+			{
+				final JFileChooser fileChooser = new JFileChooser();
+				fileChooser.setMultiSelectionEnabled(true);
+				FileNameExtensionFilter ff = new FileNameExtensionFilter("Bilder", "png", "jpg", "jpeg", "gif");
+				fileChooser.setAcceptAllFileFilterUsed(false);
+				fileChooser.setApproveButtonText("Verwenden");
+				fileChooser.setFileFilter(ff);					
+				if(fileChooser.showOpenDialog(getContentPane()) == 0)
+				{
+					File fileChooserResult = fileChooser.getSelectedFile();
+
+					File target = new File("img/" + fileChooserResult.getName());
+
+					try { Files.copy(fileChooserResult.toPath(), target.toPath(), REPLACE_EXISTING);
+					plan.setImgPath(target.getAbsolutePath()); } catch (IOException e1) {e1.printStackTrace();};	
+				}
+				caller.update();
+			}
+		});
 		
 		JButton cancel = new JButton("Schließen");
 		bottom.add(cancel);
